@@ -1,0 +1,21 @@
+{% unless product.available %}
+  <span class="product-card__badge badge--sold-out">Sold out</span>
+{% endunless %}
+
+{% if product.compare_at_price > product.price and product.available %}
+  <span class="product-card__badge badge--on-sale">On sale</span>
+{% endif %}
+
+{% for tag in product.tags %}
+  {% if tag contains 'badge__' %}
+    {% assign badge_name = tag | split: '__' | last %}
+    <span class="product-card__badge badge--{{ badge_name | handleize }}">
+      {{ badge_name }}
+    </span>
+  {% endif %}
+{% endfor %}
+
+{% assign current_variant = product.first_available_variant %}
+{% if current_variant.inventory_quantity < 10 %}
+  <span class="product-card__badge badge--inventory"> {{ current_variant.inventory_quantity }} in stock </span>
+{% endif %}
