@@ -1,0 +1,34 @@
+{% liquid
+  assign custom_heading = show_custom_heading | default: false
+  assign variant_products = product.metafields.custom.add_new_product.value
+  assign variant_products_array = product.metafields.custom.add_new_product | split: ','
+  assign variant_products_size = variant_products_array.size
+%}
+
+{% if variant_products_size > 0 %}
+  {% if custom_heading %}
+    <div class="variant-products__label">Color</div>
+  {% else %}
+    <div class="variant-products__count">
+      {{ variant_products_size }}
+      {{ variant_products_size | pluralize: 'Color available', 'Colors available' }}
+    </div>
+  {% endif %}
+
+  <div class="variant-products">
+    {% for v_product in variant_products limit: 6 %}
+      {% assign activeClass = '' %}
+      {% if custom_heading and product.handle == v_product.handle %}
+        {% assign activeClass = 'is-active' %}
+      {% endif %}
+
+      <a href="{{ v_product.url }}" class="variant-products__item {{ activeClass }}" title="{{ v_product.title }}">
+        {{ v_product | image_url: width: 100 | image_tag }}
+      </a>
+    {% endfor %}
+
+    {% if variant_products_size > 6 and custom_heading == false %}
+      <a href="{{ product.url }}" class="variant-products__more">More+</a>
+    {% endif %}
+  </div>
+{% endif %}
