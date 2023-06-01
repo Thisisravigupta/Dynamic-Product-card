@@ -1,0 +1,98 @@
+{% assign current_variant = product.selected_or_first_available_variant %}
+{% assign image = current_variant.image | default: product.featured_image %}
+
+<dynamic-product-cards
+  class="product-card"
+  data-product-handle="{{ product.url | within:collection }}"
+  data-section-id="{{ section.id }}"
+>
+  <a class="product-card__image" href="{{ product.url }}">
+    <div class="product-image">
+      {% render 'image', class: 'media media--portrait', mobileSrc: image, desktopSrc: image %}
+    </div>
+    <div class="product-card__imagehover">
+      {% assign hover_image = product.images[1] | default: product.featured_image %}
+      {% render 'image', class: 'media media--portrait', mobileSrc: hover_image, desktopSrc: hover_image %}
+    </div>
+  </a>
+
+  <div class="product-card__badges">
+    {% render 'product-badge', product: product %}
+  </div>
+
+  <div class="product-card__info">
+    <a href="{{ product.url }}">{{ product.title }}</a>
+
+    <div class="product-card__prices">
+      {% for tag in product.tags %}
+        {% if tag contains 'color__' %}
+          {% assign badge_name = tag | split: '__' | last %}
+          <span class="product-card__name">{{ badge_name }}</span>
+
+          {% break %}
+        {% endif %}
+      {% endfor %}
+
+      {% if current_variant.compare_at_price > current_variant.price %}
+        <span class="product-card__price">{{ current_variant.price | money_without_trailing_zeros }}</span>
+        <span class="product-card__compareprice">
+          {{- current_variant.compare_at_price | money_without_trailing_zeros -}}
+        </span>
+      {% else %}
+        <span class="product-card__price">{{ current_variant.price | money_without_trailing_zeros }}</span>
+      {% endif %}
+    </div>
+
+    <div class="product-card__options">
+      {% render 'product-metafield-option', product: product %}
+    </div>
+
+    {% form 'product', product %}
+      <input type="hidden" name="quantity" value="1">
+      <input type="hidden" name="id" value="{{ current_variant.id }}">
+
+      {% for option in product.options_with_values %}
+        {% assign option_name = option.name | handleize %}
+
+        <div class="product-card__option option--{{ option_name }}">
+          <div class="product-card__option--name">{{ option.name }}</div>
+
+          <div class="product-card__option--values">
+            {% for value in option.values %}
+              <div class="product-card__option--value">
+                <input
+                  id="{{ section.id }}-{{ product.id }}-{{ option.name }}-{{ forloop.index0 }}"
+                  type="radio"
+                  name="{{ option.name }}"
+                  value="{{ value }}"
+                  {% if option.selected_value == value %}
+                    checked
+                  {% endif %}
+                >
+
+                <label
+                  for="{{ section.id }}-{{ product.id }}-{{ option.name }}-{{ forloop.index0 }}"
+                  {% if option_name == 'color' %}
+                    style="background-color: {{ value | handleize }}"
+                  {% endif %}
+                >
+                  {{ value }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+
+      {% if current_variant.available %}
+        <button type="submit" class="button button--secondary">Add to cart</button>
+      {% else %}
+        <button type="button" class="button button--primary" disabled>Sold out</button>
+      {% endif %}
+    {% endform %}
+  </div>
+
+  <script type="application/json">
+    {{ product.variants | json }}
+  </script>
+</dynamic-product-cards>
